@@ -682,6 +682,13 @@ const Run = templateId => {
       let lastUiUpdate = 0;
 
       function updateUI() {
+        // if the user has scrolled to the bottom of the page, keep the
+        // scroll position "stuck" there as new log output is added, like
+        // tail -f. Any upward scroll disengages this behaviour. The check
+        // must be done before inserting the new content, which changes
+        // the document height.
+        const stickToBottom = window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 1;
         // output may contain private ANSI CSI escape sequence to point to
         // downstream jobs. ansi_up (correctly) discards unknown sequences,
         // so they must be matched before passing through ansi_up. ansi_up
@@ -704,6 +711,9 @@ const Run = templateId => {
           // output finished
           state.logComplete = true;
         }
+
+        if (stickToBottom)
+          window.scrollTo(0, document.documentElement.scrollHeight);
 
         lastUiUpdate = Date.now();
         tid = null;
